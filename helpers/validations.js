@@ -1,9 +1,10 @@
 class Validations{
     static validateTask(taskInfo){
-        if( taskInfo.hasOwnProperty("id") && 
-            taskInfo.hasOwnProperty("title") &&
+        if( taskInfo.hasOwnProperty("title") &&
             taskInfo.hasOwnProperty("description") &&
-            taskInfo.hasOwnProperty("completed") )
+            taskInfo.hasOwnProperty("completed")  &&
+            taskInfo.hasOwnProperty("id")
+        ) 
         {
             return {
                 "status" : true,
