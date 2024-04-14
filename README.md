@@ -31,6 +31,9 @@ Different endpoints offered by the projects are :
     
     DELETE /tasks/id    :   This link is for deleting a particular id from the task list 
 
+Test cases passed 19/19 :
+
+ ![Test case](https://github.com/Adityavikrambhatta/task-manager/blob/main/Screenshot%202024-04-14%20at%2010.00.44%E2%80%AFPM.png)
 
 
 
