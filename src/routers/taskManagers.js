@@ -80,10 +80,6 @@ router.put("/tasks/:id", (req, res) => {
           if (task.id == taskId) {
             task = { ...updateInData, ...task };
           }
-          else {
-            return res.status(404).send("Unable to find index.");
-
-          }
       });
       fs.writeFile(
         "./task.json",
@@ -125,7 +121,7 @@ router.delete("/tasks/:id", (req, res) => {
       (err, data) => {
         if (err) {
           return res
-            .status(400)
+            .status(500)
             .send(
               "Something went wrong while deleting the task from the file, please check the task list."
             );

@@ -1,3 +1,4 @@
+const _ = require("lodash") 
 class Validations {
   static validateTask(taskInfo) {
     if (
@@ -21,17 +22,25 @@ class Validations {
     }
   }
   static validatePutTask(taskInfo) {
-      if( 
-      taskInfo.hasOwnProperty("title") ||
-      taskInfo.hasOwnProperty("description") ||
-      taskInfo.hasOwnProperty("completed") ||
-      typeof taskInfo.title == "string" &&
-      typeof taskInfo.description == "string" &&
+    var valid_prop = []
+    
+    if( 
+      taskInfo.hasOwnProperty("title") &&
+      typeof taskInfo.title == "string" 
+    ) valid_prop.push({title : "string"})
+    if(taskInfo.hasOwnProperty("description") 
+       &&
+      typeof taskInfo.description == "string" 
+    )  valid_prop.push({description : "string"})
+    if( 
+      taskInfo.hasOwnProperty("completed") &&
       typeof taskInfo.completed == "boolean"
-    )
+    ) valid_prop.push({completed : "boolean"})
+
+    if(valid_prop.length === _.keys(taskInfo).length) 
      {
       return {
-        status: valid_prop,
+        status: true,
         message: "The course has been validated",
       };
     } else {
