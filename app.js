@@ -1,9 +1,9 @@
 const express = require("express");
 const app = express();
-const port = 3001;
+const port = 3000;
 const path = require("path");
 
-const pathRouters = path.join( __dirname ,"routers", "taskManagers.js");
+const pathRouters = path.join( __dirname ,"src","routers", "taskManagers.js");
 const routeTaskManagers = require(pathRouters);
 
 app.use(express.json());

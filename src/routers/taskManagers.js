@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path")
 
 const pathHelpers = path.join("..","helpers", "validations.js") 
-const pathTaskList = path.join("..", "task.json") 
+const pathTaskList = path.join( "..","..", "task.json") 
 const taskList = require(pathTaskList)
 
 const Validations = require(pathHelpers);
@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
 });
 
 router.get("/tasks", (req, res) => {
-  return res.status(200).json(taskList);
+  return res.status(200).json(taskList.tasks);
 });
 
 router.get("/tasks/:id", (req, res) => {
@@ -27,14 +27,16 @@ router.get("/tasks/:id", (req, res) => {
     return res.status(404).send(" No appropriate task found for your query");
   }
   console.log("Get Tasks ID");
-  return res.status(200).json(filteredTaskList);
+  return res.status(200).json(filteredTaskList[0]);
 });
 
 router.post("/tasks", (req, res) => {
   console.log("Post Tasks");
-  const userProvidedDetails = req.body;
-  if (Validations.validateTask(userProvidedDetails).status == true) {
-    taskList.tasks.push(userProvidedDetails);
+  let userProvidedDetails = req.body;
+  if (Validations.validateTask(userProvidedDetails).status) {
+    var newindex = taskList.tasks.length + 1
+    userProvidedDetails.id = newindex
+    taskList.tasks.push(userProvidedDetails); 
     fs.writeFile(
       "./task.json",
       JSON.stringify(taskList),
@@ -49,12 +51,16 @@ router.post("/tasks", (req, res) => {
         } else {
           return res
             .status(201)
-            .send("Task has been successfully validated and created");
+            .json(Validations.validateTask(userProvidedDetails));
         }
       }
     );
   } else {
-    res.status(400).json(Validations.validateTask(userProvidedDetails));
+    res
+      .status(400)
+      .send(
+        "Something went wrong while writing the task to the file, please try recreating the task"
+      );
   }
 });
 
@@ -63,64 +69,69 @@ router.put("/tasks/:id", (req, res) => {
 
   const taskManagerList = taskList.tasks;
   const updateInData = req.body;
-  const taskId = parseInt(req.params.id);
+  const taskId = req.params.id;
   const filteredTaskList = taskManagerList.filter((task) => task.id == taskId);
-  console.log(filteredTaskList);
-  if (filteredTaskList[0].id === taskId) {
-    taskManagerList.map((task, iter) => {
-      if (task.id == taskId) {
-        task = { ...updateInData, ...task };
-      }
-    });
-    fs.writeFile(
-      "./task.json",
-      JSON.stringify(taskManagerList),
-      { encoding: "utf8", flag: "w" },
-      (err, data) => {
-        if (err) {
-          return res
-            .status(500)
-            .send(
-              "Something went wrong while writing the task to the file, please try recreating the task"
-            );
-        } else {
-          return res.status(201).send("Task list has been successfully updated.");
+  console.log("filteredTaskList" ,(filteredTaskList).length)
+
+  if (filteredTaskList.length > 0) {
+    console.log("Put Validations", Validations.validatePutTask(updateInData).status)
+      if (Validations.validatePutTask(updateInData).status) {
+          taskManagerList.map((task, iter) => {
+          if (task.id == taskId) {
+            task = { ...updateInData, ...task };
+          }
+          else {
+            return res.status(404).send("Unable to find index.");
+
+          }
+      });
+      fs.writeFile(
+        "./task.json",
+        JSON.stringify({"tasks" :taskManagerList}),
+        { encoding: "utf8", flag: "w" },
+        (err, data) => {
+          if (err) {
+            return res.status(500).send(
+                "Something went wrong while writing the task to the file, please try recreating the task");
+          } else {
+            return res.status(200).send("Task list has been successfully updated.");
+          }
         }
-      }
-    );
-  } else {
-    res.status(404).json({ message: "Couldn't find the correct id in the task list for update. " });
-  }
+      );
+    } else {
+      res.status(400).json({ message: "Validation error unable to update."  });
+    }
+} else {
+  res.status(404).json({ message: "Couldn't find the correct id in the task list for update. "});
+}
 });
 
 router.delete("/tasks/:id", (req, res) => {
   console.log("Delete Tasks ID");
 
   const taskManagerList = taskList.tasks;
-  console.log(taskList);
   let filteredIndex = -1;
   filteredIndex = taskManagerList.findIndex((task) => task.id == req.params.id);
-
-  if (filteredIndex == -1) {
+  if ( filteredIndex && filteredIndex == -1) {
     return res
       .status(404)
-      .send(" Cannot delete no appropriate task id found for your query.");
+      .send(" Cannot delete, no appropriate task id found for your query.");
   } else {
     taskManagerList.splice(filteredIndex, 1);
     fs.writeFile(
       "./task.json",
-      JSON.stringify(taskManagerList),
+      JSON.stringify({"tasks" : taskManagerList}),
       { encoding: "utf8", flag: "w" },
       (err, data) => {
         if (err) {
           return res
-            .status(500)
+            .status(400)
             .send(
               "Something went wrong while deleting the task from the file, please check the task list."
             );
         } else {
           return res
-            .status(201)
+            .status(200)
             .send("Task has been successfully executed and the Id has been deleted.");
         }
       }
